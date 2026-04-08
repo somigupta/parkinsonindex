@@ -22,6 +22,8 @@
       border-radius: 12px;
       width: 400px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      overflow-y: auto;
+      max-height: 90vh;
     }
 
     h2 {
@@ -75,52 +77,36 @@
 <div class="container">
   <h2>Parkinson Detection</h2>
 
-  <!-- Input Fields (based on common dataset features) -->
-  <div class="input-group">
-    <label>MDVP:Fo(Hz)</label>
-    <input type="number" id="fo">
-  </div>
-
-  <div class="input-group">
-    <label>MDVP:Fhi(Hz)</label>
-    <input type="number" id="fhi">
-  </div>
-
-  <div class="input-group">
-    <label>MDVP:Flo(Hz)</label>
-    <input type="number" id="flo">
-  </div>
-
-  <div class="input-group">
-    <label>Jitter (%)</label>
-    <input type="number" step="0.0001" id="jitter">
-  </div>
-
-  <div class="input-group">
-    <label>Shimmer</label>
-    <input type="number" step="0.0001" id="shimmer">
-  </div>
-
-  <div class="input-group">
-    <label>NHR</label>
-    <input type="number" step="0.0001" id="nhr">
-  </div>
-
-  <div class="input-group">
-    <label>HNR</label>
-    <input type="number" step="0.01" id="hnr">
-  </div>
+  <div class="input-group"><label>MDVP:Fo(Hz)</label><input type="number" id="fo"></div>
+  <div class="input-group"><label>MDVP:Fhi(Hz)</label><input type="number" id="fhi"></div>
+  <div class="input-group"><label>MDVP:Flo(Hz)</label><input type="number" id="flo"></div>
+  <div class="input-group"><label>Jitter (%)</label><input type="number" step="0.0001" id="jitter"></div>
+  <div class="input-group"><label>Jitter Abs</label><input type="number" step="0.0001" id="jitterAbs"></div>
+  <div class="input-group"><label>RAP</label><input type="number" step="0.0001" id="rap"></div>
+  <div class="input-group"><label>PPQ</label><input type="number" step="0.0001" id="ppq"></div>
+  <div class="input-group"><label>DDP</label><input type="number" step="0.0001" id="ddp"></div>
+  <div class="input-group"><label>Shimmer</label><input type="number" step="0.0001" id="shimmer"></div>
+  <div class="input-group"><label>Shimmer(dB)</label><input type="number" step="0.0001" id="shimmerDb"></div>
+  <div class="input-group"><label>APQ3</label><input type="number" step="0.0001" id="apq3"></div>
+  <div class="input-group"><label>APQ5</label><input type="number" step="0.0001" id="apq5"></div>
+  <div class="input-group"><label>APQ</label><input type="number" step="0.0001" id="apq"></div>
+  <div class="input-group"><label>DDA</label><input type="number" step="0.0001" id="dda"></div>
+  <div class="input-group"><label>NHR</label><input type="number" step="0.0001" id="nhr"></div>
+  <div class="input-group"><label>HNR</label><input type="number" step="0.01" id="hnr"></div>
+  <div class="input-group"><label>RPDE</label><input type="number" step="0.0001" id="rpde"></div>
+  <div class="input-group"><label>DFA</label><input type="number" step="0.0001" id="dfa"></div>
+  <div class="input-group"><label>Spread1</label><input type="number" step="0.0001" id="spread1"></div>
+  <div class="input-group"><label>Spread2</label><input type="number" step="0.0001" id="spread2"></div>
+  <div class="input-group"><label>D2</label><input type="number" step="0.0001" id="d2"></div>
+  <div class="input-group"><label>PPE</label><input type="number" step="0.0001" id="ppe"></div>
 
   <button onclick="predict()">Predict</button>
-
   <div class="result" id="result"></div>
 </div>
 
-<button onclick="predict()">Predict</button>
-
-  <script>
-    async function predict() {
-      const data = {
+<script>
+async function predict() {
+    const data = {
         features: [
           parseFloat(document.getElementById("fo").value),
           parseFloat(document.getElementById("fhi").value),
@@ -145,20 +131,34 @@
           parseFloat(document.getElementById("d2").value),
           parseFloat(document.getElementById("ppe").value)
         ]
-      };
+    };
 
-      const response = await fetch("YOUR_API_ENDPOINT/predict", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-      alert("Prediction: " + JSON.stringify(result));
+    if (data.features.some(v => isNaN(v))) {
+        alert("Please fill all 22 fields!");
+        return;
     }
-  </script>
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            alert("Error: " + response.status);
+            return;
+        }
+
+        const result = await response.json();
+        document.getElementById("result").innerText = "Prediction: " + JSON.stringify(result);
+
+    } catch (err) {
+        console.error(err);
+        alert("Network or backend error. Check console.");
+    }
+}
+</script>
 
 </body>
 </html>
